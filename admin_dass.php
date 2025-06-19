@@ -589,8 +589,9 @@ $dassResult = $conn->query($dassQuery);
                     </div>
                     
                     <div class="action-buttons">
-                        <button class="delete-btn" onclick="if(confirm('Are you sure you want to delete this DASS record?')) window.location.href='delete_dass.php?DASS_ID=<?= $dass['Test_ID'] ?>'">🗑️ Delete</button>
+                        <button class="delete-btn" onclick="if(confirm('Are you sure you want to delete this DASS record?')) window.location.href='delete_dass.php?Test_ID=<?= $dass['Test_ID'] ?>'">🗑️ Delete</button>
                     </div>
+
                 </div>
             <?php endwhile; ?>
         <?php else: ?>
