@@ -7,7 +7,10 @@ if (!isset($_SESSION['User_Username']) || $_SESSION['User_Role'] !== 'admin') {
     exit();
 }
 
-// Handle add
+// Flash message setup
+$flashMessage = "";
+
+// Handle Add
 if (isset($_POST['add'])) {
     $keyword = strtolower(trim($_POST['User_Input']));
     $response = trim($_POST['Bot_Response']);
@@ -15,42 +18,68 @@ if (isset($_POST['add'])) {
     if (!empty($keyword) && !empty($response)) {
         $stmt = $conn->prepare("INSERT INTO chatbot_rules (User_Input, Bot_Response) VALUES (?, ?)");
         $stmt->bind_param("ss", $keyword, $response);
-        $stmt->execute();
+        if ($stmt->execute()) {
+            $flashMessage = "✅ New chatbot rule added successfully!";
+        } else {
+            $flashMessage = "❌ Failed to add chatbot rule.";
+        }
         $stmt->close();
+    } else {
+        $flashMessage = "⚠️ Please fill in all fields before adding.";
     }
 }
 
-// Handle delete
+// Handle Delete
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
-    $conn->query("DELETE FROM chatbot_rules WHERE Rule_ID = $id");
+    if ($conn->query("DELETE FROM chatbot_rules WHERE Rule_ID = $id")) {
+        $flashMessage = "🗑️ Rule deleted successfully.";
+    } else {
+        $flashMessage = "❌ Failed to delete rule.";
+    }
 }
 
-// Handle edit
+// Handle Edit
 if (isset($_POST['edit'])) {
     $id = intval($_POST['id']);
     $keyword = strtolower(trim($_POST['User_Input']));
     $response = trim($_POST['Bot_Response']);
 
-    $stmt = $conn->prepare("UPDATE chatbot_rules SET User_Input = ?, Bot_Response = ? WHERE Rule_ID = ?");
-    $stmt->bind_param("ssi", $keyword, $response, $id);
-    $stmt->execute();
-    $stmt->close();
+    if (!empty($keyword) && !empty($response)) {
+        $stmt = $conn->prepare("UPDATE chatbot_rules SET User_Input = ?, Bot_Response = ? WHERE Rule_ID = ?");
+        $stmt->bind_param("ssi", $keyword, $response, $id);
+        if ($stmt->execute()) {
+            $flashMessage = "✏️ Rule updated successfully.";
+        } else {
+            $flashMessage = "❌ Failed to update rule.";
+        }
+        $stmt->close();
+    } else {
+        $flashMessage = "⚠️ Please fill in all fields before editing.";
+    }
 }
 
-// Get all rules
-$rules = $conn->query("SELECT * FROM chatbot_rules ORDER BY Rule_ID ASC");
+// Handle Search
+$searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
+$rulesQuery = "SELECT * FROM chatbot_rules";
+
+if (!empty($searchTerm)) {
+    $rulesQuery .= " WHERE User_Input LIKE '%" . $conn->real_escape_string($searchTerm) . "%'";
+}
+
+$rulesQuery .= " ORDER BY Rule_ID ASC";
+$rules = $conn->query($rulesQuery);
 ?>
 
+<!-- HTML STARTS -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Chatbot Rules</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
+                * {
             box-sizing: border-box;
             font-family: 'Inter', sans-serif;
         }
@@ -417,7 +446,7 @@ $rules = $conn->query("SELECT * FROM chatbot_rules ORDER BY Rule_ID ASC");
         <a href="admin_exercise.php"><span>📄</span> Question Management</a>
         <a href="admin_dass.php"><span>📚</span> DASS History</a>
         <a href="admin_chatbot.php" class="active"><span>🤖</span> Chatbot Management</a>
-                <a href="tips_management.php"><span>💡</span> Tips Management</a>
+        <a href="tips_management.php"><span>💡</span> Tips Management</a>
     </nav>
     <button class="logout-btn" onclick="window.location.href='logout.php'">🚪 Logout</button>
 </div>
@@ -428,6 +457,25 @@ $rules = $conn->query("SELECT * FROM chatbot_rules ORDER BY Rule_ID ASC");
         <p>Manage chatbot rules and responses for better user interactions</p>
     </div>
 
+    <!-- Flash Message -->
+    <?php if (!empty($flashMessage)): ?>
+        <div style="margin-bottom: 20px; padding: 15px; background-color: #fef3c7; color: #92400e; border-radius: 10px; font-weight: 500;">
+            <?= htmlspecialchars($flashMessage) ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- Search Bar -->
+<form method="GET" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <input type="text" name="search" placeholder="🔍 Search by keyword..." value="<?= htmlspecialchars($searchTerm) ?>"
+           style="padding: 10px 16px; font-size: 16px; border-radius: 12px; border: 2px solid #e5e7eb; flex: 1; min-width: 250px;">
+
+    <button type="submit" class="btn btn-small" style="padding: 10px 20px;">🔍 Search</button>
+
+    <a href="admin_chatbot.php" class="btn btn-danger btn-small" style="text-decoration: none; padding: 10px 20px;">❌ Clear</a>
+</form>
+
+
+    <!-- Add Rule -->
     <div class="form-container">
         <h2>Add New Chatbot Rule</h2>
         <form method="POST">
@@ -445,6 +493,7 @@ $rules = $conn->query("SELECT * FROM chatbot_rules ORDER BY Rule_ID ASC");
         </form>
     </div>
 
+    <!-- Rule Table -->
     <div class="table-container">
         <h2>Existing Chatbot Rules</h2>
         <div class="table-wrapper">
