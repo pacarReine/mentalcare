@@ -578,9 +578,9 @@ if ($custom_factors_result->num_rows > 0) {
     
     <div class="main-content">
         <div class="header">
-            <h1>Mood Tracker</h1>
+            <h1>Mood Trackers</h1>
         </div>
-
+        
         <?php if ($edit_data): ?>
         <div class="card edit-form">
             <h3>Edit Mood Entry</h3>
