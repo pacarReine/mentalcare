@@ -324,8 +324,9 @@ if (isset($_GET['edit'])) {
             font-family: inherit;
         }
 
+        /* Standardized Button Styles */
         .btn {
-            padding: 12px 25px;
+            padding: 14px 24px;
             border: none;
             border-radius: 12px;
             cursor: pointer;
@@ -333,11 +334,16 @@ if (isset($_GET['edit'])) {
             font-size: 16px;
             transition: all 0.3s ease;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             text-align: center;
-            margin-right: 10px;
+            margin: 0 8px 8px 0;
             position: relative;
             overflow: hidden;
+            min-width: 140px;
+            height: 48px;
+            white-space: nowrap;
         }
 
         .btn::before {
@@ -388,13 +394,20 @@ if (isset($_GET['edit'])) {
         .btn-edit {
             background: linear-gradient(135deg, #06b6d4, #0891b2);
             color: white;
-            padding: 8px 16px;
-            font-size: 14px;
         }
 
         .btn-edit:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.4);
+        }
+
+        /* Button Container Styles */
+        .button-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
         }
 
         .search-form {
@@ -402,6 +415,11 @@ if (isset($_GET['edit'])) {
             gap: 15px;
             align-items: end;
             flex-wrap: wrap;
+        }
+
+        .search-form .button-group {
+            margin-top: 0;
+            align-items: flex-end;
         }
 
         .search-input {
@@ -412,6 +430,12 @@ if (isset($_GET['edit'])) {
         .search-select {
             flex: 1;
             min-width: 150px;
+        }
+
+        .search-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
         }
 
         .table-wrapper {
@@ -454,9 +478,15 @@ if (isset($_GET['edit'])) {
 
         .action-buttons {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
             justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons .btn {
+            min-width: 100px;
+            margin: 0;
         }
 
         .type-badge {
@@ -501,10 +531,14 @@ if (isset($_GET['edit'])) {
             }
             .search-form {
                 flex-direction: column;
+                align-items: stretch;
             }
             .search-input, .search-select {
                 flex: 1;
                 min-width: 100%;
+            }
+            .search-buttons {
+                justify-content: flex-start;
             }
         }
 
@@ -526,11 +560,27 @@ if (isset($_GET['edit'])) {
             .page-header h1 {
                 font-size: 24px;
             }
+            .button-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn {
+                min-width: 100%;
+                margin: 0 0 12px 0;
+            }
             .action-buttons {
                 flex-direction: column;
                 gap: 8px;
             }
-            .btn-edit, .btn-danger {
+            .action-buttons .btn {
+                width: 100%;
+                min-width: 100%;
+            }
+            .search-buttons {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .search-buttons .btn {
                 width: 100%;
             }
         }
@@ -543,8 +593,9 @@ if (isset($_GET['edit'])) {
                 padding: 15px;
             }
             .btn {
-                padding: 10px 20px;
+                padding: 12px 20px;
                 font-size: 14px;
+                height: 44px;
             }
             table {
                 font-size: 14px;
@@ -568,7 +619,7 @@ if (isset($_GET['edit'])) {
         <a href="admin_exercise.php" class="active"><span>📄</span> Question Management</a>
         <a href="admin_dass.php"><span>📚</span> DASS History</a>
         <a href="admin_chatbot.php"><span>🤖</span> Chatbot Management</a>
-                <a href="tips_management.php"><span>💡</span> Tips Management</a>
+        <a href="tips_management.php"><span>💡</span> Tips Management</a>
     </nav>
     <button class="logout-btn" onclick="window.location.href='logout.php'">🚪 Logout</button>
 </div>
@@ -609,7 +660,7 @@ if (isset($_GET['edit'])) {
                 </select>
             </div>
 
-            <div class="form-group">
+            <div class="button-group">
                 <button type="submit" name="<?= $editMode ? 'update' : 'add' ?>" class="btn btn-primary">
                     <?= $editMode ? '✅ Update Question' : '➕ Add Question' ?>
                 </button>
@@ -638,8 +689,7 @@ if (isset($_GET['edit'])) {
                     <option value="stress" <?= $filterType == 'stress' ? 'selected' : '' ?>>Stress</option>
                 </select>
             </div>
-            <div>
-                <label>&nbsp;</label>
+            <div class="search-buttons">
                 <button type="submit" class="btn btn-primary">🔍 Search</button>
                 <a href="admin_exercise.php" class="btn btn-secondary">🔄 Reset</a>
             </div>
