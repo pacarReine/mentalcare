@@ -548,7 +548,7 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
 <div class="sidebar">
     <div class="sidebar-header">
-        <h2>Admin Panel</h2>
+        <h2>🌟 Admin Panel</h2>
     </div>
     <nav class="sidebar-nav">
         <a href="admin_dashboard.php">📊 Dashboard</a>
