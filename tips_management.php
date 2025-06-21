@@ -82,189 +82,465 @@ $searchResults = null;
 if (isset($_GET['search']) && !empty($_GET['search'])) {
     $searchQuery = trim($_GET['search']);
     $searchTerm = "%$searchQuery%";
-    $stmt = $conn->prepare("SELECT * FROM tips WHERE category LIKE ? OR tip LIKE ? OR keywords LIKE ? ORDER BY date_added ASC");
+    $stmt = $conn->prepare("SELECT * FROM tips WHERE category LIKE ? OR tip LIKE ? OR keywords LIKE ? ORDER BY date_added DESC");
     $stmt->bind_param("sss", $searchTerm, $searchTerm, $searchTerm);
     $stmt->execute();
     $searchResults = $stmt->get_result();
     $stmt->close();
 } else {
-    $searchResults = $conn->query("SELECT * FROM tips ORDER BY date_added ASC");
+    $searchResults = $conn->query("SELECT * FROM tips ORDER BY date_added DESC");
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Tips Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tips Management - Admin Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
+        * {
+            box-sizing: border-box;
             font-family: 'Inter', sans-serif;
-            display: flex;
+        }
+        
+        body {
             margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
         }
 
         .sidebar {
-            width: 220px;
-            background: #1e293b;
-            color: #fff;
-            padding: 20px;
-            min-height: 100vh;
+            width: 280px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 30px 25px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .sidebar-header h2 {
-            margin: 0 0 20px;
-            font-size: 22px;
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 40px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .sidebar-nav a {
-            display: block;
-            padding: 10px;
-            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #4a5568;
             text-decoration: none;
-            margin-bottom: 10px;
-            border-radius: 6px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
         }
 
-        .sidebar-nav a.active,
-        .sidebar-nav a:hover {
-            background: #3b82f6;
-            color: #fff;
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
         .logout-btn {
-            margin-top: 20px;
-            background: #ef4444;
-            color: white;
+            margin-top: 30px;
+            padding: 15px;
+            width: 100%;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
             border: none;
-            padding: 10px 15px;
-            border-radius: 6px;
+            color: white;
+            border-radius: 12px;
             cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
         }
 
         .main {
-            flex-grow: 1;
+            margin-left: 280px;
+            padding: 40px;
+            width: calc(100% - 280px);
+            min-height: 100vh;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .page-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
             padding: 30px;
-            background: #f1f5f9;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .page-header h1 {
-            margin: 0 0 10px;
+            margin: 0 0 10px 0;
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 16px;
         }
 
         .alert {
-            background-color: #fef2f2;
-            color: #991b1b;
-            border: 1px solid #fca5a5;
-            padding: 10px 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #10b981;
+            color: #065f46;
+            font-weight: 500;
         }
 
         .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
             margin-bottom: 30px;
-            background: #fff;
-            padding: 20px;
-            border-radius: 6px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-container h3 {
+            margin: 0 0 25px 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #1f2937;
         }
 
         .form-container input,
         .form-container textarea {
             width: 100%;
-            padding: 10px;
-            margin-top: 8px;
-            margin-bottom: 16px;
-            border-radius: 6px;
-            border: 1px solid #d1d5db;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: white;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-container input:focus,
+        .form-container textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-container textarea {
+            resize: vertical;
+            min-height: 120px;
         }
 
         .btn-primary {
-            background-color: #3b82f6;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            padding: 10px 18px;
-            border-radius: 6px;
+            border-radius: 12px;
             cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
 
         .btn-secondary {
-            background-color: #6b7280;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #6b7280, #4b5563);
             color: white;
-            padding: 10px 16px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 16px;
             text-decoration: none;
-            border-radius: 6px;
-            margin-left: 10px;
+            display: inline-block;
+            margin-left: 15px;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(107, 114, 128, 0.4);
+        }
+
+        .search-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .search-form {
             display: flex;
-            margin-bottom: 20px;
-            gap: 10px;
+            gap: 15px;
+            align-items: center;
         }
 
-        .search-form input {
+        .search-form input[type="text"] {
+            padding: 15px 20px;
+            font-size: 16px;
             flex: 1;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #d1d5db;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: white;
+            transition: all 0.3s ease;
         }
 
-        .search-btn,
-        .clear-search {
-            padding: 10px 16px;
-            border-radius: 6px;
-            text-decoration: none;
-            color: white;
+        .search-form input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .search-btn {
-            background: #3b82f6;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
             border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
 
         .clear-search {
-            background-color: #ef4444;
-            border: none;
-            cursor: pointer;
-        }
-
-        .tips-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-        }
-
-        .tips-table th, .tips-table td {
-            border: 1px solid #e5e7eb;
-            padding: 12px;
-            text-align: left;
-        }
-
-        .tips-table th {
-            background: #f3f4f6;
-        }
-
-        .tips-table .action-btn,
-        .tips-table .delete-btn {
-            padding: 6px 10px;
-            border-radius: 4px;
-            text-decoration: none;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
             color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .clear-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
+        }
+
+        .tips-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .tips-header {
+            margin-bottom: 25px;
+        }
+
+        .tips-header h3 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .tip-item {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .tip-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .tip-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .tip-category {
+            display: inline-block;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .tip-date {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .tip-content {
+            color: #374151;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .tip-keywords {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .tip-keywords strong {
+            color: #374151;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
         }
 
         .action-btn {
-            background: #3b82f6;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
         .delete-btn {
-            background: #ef4444;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            text-decoration: none;
         }
 
-        .no-results {
+        .delete-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(238, 90, 36, 0.4);
+        }
+
+        .no-data {
             text-align: center;
+            padding: 60px 20px;
             color: #6b7280;
-            padding: 20px;
+            font-size: 18px;
+        }
+
+        @media screen and (max-width: 1024px) {
+            .main {
+                padding: 30px;
+            }
+            .form-container,
+            .search-section,
+            .tips-container {
+                padding: 20px;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .main {
+                margin-left: 0;
+                width: 100%;
+                padding: 20px;
+            }
+            .sidebar {
+                display: none;
+            }
+            .search-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-form input[type="text"] {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+            .tip-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .main {
+                padding: 15px;
+            }
+            .page-header,
+            .form-container,
+            .search-section,
+            .tips-container {
+                padding: 15px;
+            }
+            .page-header h1 {
+                font-size: 24px;
+            }
         }
     </style>
 </head>
@@ -287,8 +563,8 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
 <div class="main">
     <div class="page-header">
-        <h1>Tips Management</h1>
-        <p>Manage motivational tips and wellness content for users.</p>
+        <h1>💡 Tips Management</h1>
+        <p>Create and manage motivational tips and wellness content to inspire and support users on their mental health journey.</p>
     </div>
 
     <?php if (!empty($message)): ?>
@@ -297,10 +573,10 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
     <div class="form-container">
         <form method="POST">
-            <h3><?= $editMode ? 'Edit Tip' : 'Add New Tip' ?></h3>
-            <input type="text" name="category" placeholder="Category (e.g., Motivation, Wellness)" value="<?= $editMode ? htmlspecialchars($editTip['category']) : '' ?>" required>
-            <textarea name="tip" placeholder="Enter your motivational tip here..." required><?= $editMode ? htmlspecialchars($editTip['tip']) : '' ?></textarea>
-            <input type="text" name="keywords" placeholder="Keywords (comma-separated)" value="<?= $editMode ? htmlspecialchars($editTip['keywords']) : '' ?>" required>
+            <h3><?= $editMode ? '✏️ Edit Tip' : '➕ Add New Tip' ?></h3>
+            <input type="text" name="category" placeholder="Category (e.g., Motivation, Wellness, Self-Care, Mindfulness)" value="<?= $editMode ? htmlspecialchars($editTip['category']) : '' ?>" required>
+            <textarea name="tip" placeholder="Enter your motivational tip here... Make it inspiring and actionable!" required><?= $editMode ? htmlspecialchars($editTip['tip']) : '' ?></textarea>
+            <input type="text" name="keywords" placeholder="Keywords (comma-separated for better searchability)" value="<?= $editMode ? htmlspecialchars($editTip['keywords']) : '' ?>" required>
             <?php if ($editMode): ?>
                 <input type="hidden" name="tip_id" value="<?= $editTip['Tips_ID'] ?>">
                 <button type="submit" name="update_tip" class="btn-primary">Update Tip</button>
@@ -311,45 +587,55 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
         </form>
     </div>
 
-    <form method="GET" class="search-form">
-        <input type="text" name="search" placeholder="Search tips by category, content, or keywords..." value="<?= htmlspecialchars($searchQuery) ?>">
-        <button type="submit" class="search-btn">Search</button>
-        <?php if ($searchQuery): ?>
-            <button type="button" class="clear-search" onclick="window.location.href='tips_management.php'">Clear</button>
-        <?php endif; ?>
-    </form>
+    <div class="search-section">
+        <form method="GET" class="search-form">
+            <input type="text" name="search" placeholder="🔍 Search tips by category, content, or keywords..." value="<?= htmlspecialchars($searchQuery) ?>">
+            <button type="submit" class="search-btn">Search</button>
+            <?php if ($searchQuery): ?>
+                <button type="button" class="clear-search" onclick="window.location.href='tips_management.php'">Clear</button>
+            <?php endif; ?>
+        </form>
+    </div>
 
-    <table class="tips-table">
-        <thead>
-            <tr>
-                <th>No.</th>
-                <th>Category</th>
-                <th>Tip Content</th>
-                <th>Keywords</th>
-                <th>Date Added</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
+    <div class="tips-container">
+        <div class="tips-header">
+            <h3>📚 Tips Collection</h3>
+        </div>
+        
         <?php if ($searchResults && $searchResults->num_rows > 0): ?>
-            <?php $no = 1; while ($row = $searchResults->fetch_assoc()): ?>
-                <tr>
-                    <td><?= $no++ ?></td>
-                    <td><?= htmlspecialchars($row['category']) ?></td>
-                    <td><?= nl2br(htmlspecialchars($row['tip'])) ?></td>
-                    <td><?= htmlspecialchars($row['keywords']) ?></td>
-                    <td><?= htmlspecialchars($row['date_added']) ?></td>
-                    <td>
-                        <a href="?edit=<?= $row['Tips_ID'] ?>" class="action-btn">Edit</a>
-                        <a href="?delete=<?= $row['Tips_ID'] ?>" class="delete-btn" onclick="return confirm('Are you sure you want to delete this tip?')">Delete</a>
-                    </td>
-                </tr>
+            <?php while ($row = $searchResults->fetch_assoc()): ?>
+                <div class="tip-item">
+                    <div class="tip-header">
+                        <div>
+                            <div class="tip-category"><?= htmlspecialchars($row['category']) ?></div>
+                        </div>
+                        <div class="tip-date"><?= date('M j, Y', strtotime($row['date_added'])) ?></div>
+                    </div>
+                    
+                    <div class="tip-content">
+                        <?= nl2br(htmlspecialchars($row['tip'])) ?>
+                    </div>
+                    
+                    <div class="tip-keywords">
+                        <strong>Keywords:</strong> <?= htmlspecialchars($row['keywords']) ?>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <a href="?edit=<?= $row['Tips_ID'] ?>" class="action-btn">✏️ Edit</a>
+                        <a href="?delete=<?= $row['Tips_ID'] ?>" class="delete-btn" onclick="return confirm('Are you sure you want to delete this tip? This action cannot be undone.')">🗑️ Delete</a>
+                    </div>
+                </div>
             <?php endwhile; ?>
         <?php else: ?>
-            <tr><td colspan="6" class="no-results">No tips found.</td></tr>
+            <div class="no-data">
+                <?php if ($searchQuery): ?>
+                    🔍 No tips found matching your search criteria.
+                <?php else: ?>
+                    📝 No tips available yet. Start by adding your first motivational tip!
+                <?php endif; ?>
+            </div>
         <?php endif; ?>
-        </tbody>
-    </table>
+    </div>
 </div>
 
 </body>
