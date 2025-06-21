@@ -34,9 +34,29 @@ $moodDates = array_reverse($moodDates);
 $journalResult = $conn->query("SELECT * FROM journal WHERE User_ID = $userId ORDER BY Journal_Date DESC LIMIT 1");
 $journal = $journalResult->fetch_assoc();
 
-// Fetch latest goal
+// Fetch latest goal with target date
 $goalResult = $conn->query("SELECT * FROM goal_settings WHERE User_ID = $userId ORDER BY Goal_ID DESC LIMIT 1");
 $goal = $goalResult->fetch_assoc();
+
+// Calculate days remaining for goal (if target date exists)
+$daysRemaining = null;
+$targetStatus = '';
+if ($goal && isset($goal['Target_Date']) && $goal['Target_Date']) {
+    $targetDate = new DateTime($goal['Target_Date']);
+    $currentDate = new DateTime();
+    $interval = $currentDate->diff($targetDate);
+    
+    if ($targetDate > $currentDate) {
+        $daysRemaining = $interval->days;
+        $targetStatus = 'upcoming';
+    } elseif ($targetDate < $currentDate) {
+        $daysRemaining = $interval->days;
+        $targetStatus = 'overdue';
+    } else {
+        $daysRemaining = 0;
+        $targetStatus = 'today';
+    }
+}
 
 // Fetch latest exercise score
 $exerciseResult = $conn->query("SELECT * FROM dass_test_results WHERE User_ID = $userId ORDER BY Test_Date DESC LIMIT 1");
@@ -206,6 +226,37 @@ $motivation = $motivationResult->fetch_assoc();
             max-width: 100%;
         }
 
+        /* Target Date Styling */
+        .target-date-info {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .target-upcoming {
+            background-color: #e8f5e8;
+            color: #2d5a2d;
+            border-left: 3px solid #4caf50;
+        }
+        
+        .target-today {
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 3px solid #ffc107;
+        }
+        
+        .target-overdue {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 3px solid #dc3545;
+        }
+        
+        .days-counter {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
@@ -287,6 +338,27 @@ $motivation = $motivationResult->fetch_assoc();
             <?php if ($goal): ?>
                 <p><strong>Title:</strong> <?= htmlspecialchars($goal['Goal_Title']) ?></p>
                 <p><strong>Content:</strong> <?= htmlspecialchars($goal['Goal_Content']) ?></p>
+                
+                <?php if (isset($goal['Target_Date']) && $goal['Target_Date']): ?>
+                    <p><strong>Target Date:</strong> <?= date('M d, Y', strtotime($goal['Target_Date'])) ?></p>
+                    
+                    <?php if ($targetStatus && $daysRemaining !== null): ?>
+                        <div class="target-date-info target-<?= $targetStatus ?>">
+                            <?php if ($targetStatus === 'upcoming'): ?>
+                                <div class="days-counter">⏰ <?= $daysRemaining ?> days remaining</div>
+                                <div>Keep pushing towards your goal!</div>
+                            <?php elseif ($targetStatus === 'today'): ?>
+                                <div class="days-counter">🎯 Goal deadline is TODAY!</div>
+                                <div>Time to achieve your goal!</div>
+                            <?php elseif ($targetStatus === 'overdue'): ?>
+                                <div class="days-counter">⚠️ <?= $daysRemaining ?> days overdue</div>
+                                <div>Consider revising your timeline or celebrating partial progress!</div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <p><em>No target date set for this goal</em></p>
+                <?php endif; ?>
             <?php else: ?>
                 <p class="no-data">No goals added yet. Set your first goal to get started!</p>
             <?php endif; ?>
