@@ -22,9 +22,10 @@ $editGoal = null;
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_goal'])) {
     $goalTitle = $_POST['Goal_Title'];
     $goalContent = $_POST['Goal_Content'];
+    $targetDate = $_POST['Target_Date'];
 
-    $stmt = $conn->prepare("INSERT INTO goal_settings (User_ID, Goal_Title, Goal_Content) VALUES (?, ?, ?)");
-    $stmt->bind_param("iss", $userId, $goalTitle, $goalContent);
+    $stmt = $conn->prepare("INSERT INTO goal_settings (User_ID, Goal_Title, Goal_Content, Target_Date) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("isss", $userId, $goalTitle, $goalContent, $targetDate);
     
     if ($stmt->execute()) {
         $message = "✅ Goal added successfully!";
@@ -40,9 +41,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_goal_content'])
     $goalId = $_POST['Goal_ID'];
     $goalTitle = $_POST['Goal_Title'];
     $goalContent = $_POST['Goal_Content'];
+    $targetDate = $_POST['Target_Date'];
 
-    $stmt = $conn->prepare("UPDATE goal_settings SET Goal_Title = ?, Goal_Content = ? WHERE Goal_ID = ? AND User_ID = ?");
-    $stmt->bind_param("ssii", $goalTitle, $goalContent, $goalId, $userId);
+    $stmt = $conn->prepare("UPDATE goal_settings SET Goal_Title = ?, Goal_Content = ?, Target_Date = ? WHERE Goal_ID = ? AND User_ID = ?");
+    $stmt->bind_param("sssii", $goalTitle, $goalContent, $targetDate, $goalId, $userId);
     
     if ($stmt->execute()) {
         $message = "✅ Goal updated successfully!";
@@ -107,6 +109,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_goals'])) {
     }
 
     $reset->close();
+}
+
+// Function to calculate days remaining or elapsed
+function calculateDaysDifference($targetDate) {
+    $today = new DateTime();
+    $target = new DateTime($targetDate);
+    $interval = $today->diff($target);
+    
+    if ($target > $today) {
+        return ['status' => 'remaining', 'days' => $interval->days, 'text' => $interval->days . ' days remaining'];
+    } elseif ($target < $today) {
+        return ['status' => 'overdue', 'days' => $interval->days, 'text' => $interval->days . ' days overdue'];
+    } else {
+        return ['status' => 'today', 'days' => 0, 'text' => 'Due today!'];
+    }
 }
 
 // Get Goals
@@ -205,7 +222,7 @@ while ($row = $result->fetch_assoc()) {
             line-height: 1.6;
             margin-bottom: 15px;
         }
-        input[type="text"], textarea {
+        input[type="text"], input[type="date"], textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
@@ -213,7 +230,7 @@ while ($row = $result->fetch_assoc()) {
             margin-bottom: 15px;
             font-family: 'Poppins', sans-serif;
         }
-        input[type="text"]:focus, textarea:focus {
+        input[type="text"]:focus, input[type="date"]:focus, textarea:focus {
             outline: none;
             border-color: #6a11cb;
             box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.2);
@@ -221,6 +238,14 @@ while ($row = $result->fetch_assoc()) {
         textarea {
             min-height: 100px;
             resize: vertical;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        .form-row > * {
+            flex: 1;
         }
         .btn {
             display: inline-block;
@@ -318,6 +343,36 @@ while ($row = $result->fetch_assoc()) {
             color: #333;
             word-wrap: break-word;
         }
+        .goal-date {
+            font-size: 0.85rem;
+            margin-top: 8px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            font-weight: 500;
+        }
+        .date-remaining {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        .date-today {
+            background-color: #fff3e0;
+            color: #f57c00;
+            animation: pulse 2s infinite;
+        }
+        .date-overdue {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+        .date-completed {
+            background-color: #e8f5e8;
+            color: #388e3c;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
         .success-message {
             background-color: rgba(40, 167, 69, 0.1);
             border-left: 4px solid #28a745;
@@ -342,6 +397,11 @@ while ($row = $result->fetch_assoc()) {
         .edit-form h3 {
             color: #6a11cb;
             margin-bottom: 15px;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -372,6 +432,12 @@ while ($row = $result->fetch_assoc()) {
             <input type="hidden" name="Goal_ID" value="<?= $editGoal['Goal_ID'] ?>">
             <input type="text" name="Goal_Title" value="<?= htmlspecialchars($editGoal['Goal_Title']) ?>" placeholder="What do you want to achieve?" required>
             <textarea name="Goal_Content" placeholder="Describe your goal and why it's important to you..." required><?= htmlspecialchars($editGoal['Goal_Content']) ?></textarea>
+            <div class="form-row">
+                <div>
+                    <label for="Target_Date" style="display: block; margin-bottom: 5px; font-weight: 500; color: #333;">Target Date:</label>
+                    <input type="date" name="Target_Date" value="<?= $editGoal['Target_Date'] ?>" required>
+                </div>
+            </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <button class="btn" type="submit" name="update_goal_content">Update Goal</button>
                 <a href="goal.php" class="btn btn-secondary">Cancel</a>
@@ -385,6 +451,12 @@ while ($row = $result->fetch_assoc()) {
         <form method="post">
             <input type="text" name="Goal_Title" placeholder="What do you want to achieve?" required>
             <textarea name="Goal_Content" placeholder="Describe your goal and why it's important to you..." required></textarea>
+            <div class="form-row">
+                <div>
+                    <label for="Target_Date" style="display: block; margin-bottom: 5px; font-weight: 500; color: #333;">Target Date:</label>
+                    <input type="date" name="Target_Date" min="<?= date('Y-m-d') ?>" required>
+                </div>
+            </div>
             <button class="btn" type="submit" name="add_goal">Add Goal</button>
         </form>
     </div>
@@ -408,6 +480,27 @@ while ($row = $result->fetch_assoc()) {
                                     <div class="goal-title"><?= htmlspecialchars($goal['Goal_Title']) ?></div>
                                     <div class="goal-content"><?= htmlspecialchars($goal['Goal_Content']) ?></div>
                                 </span>
+                                
+                                <?php if ($goal['Target_Date']): ?>
+                                    <?php 
+                                    if ($goal['Completed']) {
+                                        echo '<div class="goal-date date-completed">✅ Completed on ' . date('M j, Y', strtotime($goal['Target_Date'])) . '</div>';
+                                    } else {
+                                        $dateDiff = calculateDaysDifference($goal['Target_Date']);
+                                        $dateClass = 'date-' . $dateDiff['status'];
+                                        echo '<div class="goal-date ' . $dateClass . '">';
+                                        if ($dateDiff['status'] === 'remaining') {
+                                            echo '⏰ ' . $dateDiff['text'] . ' (Due: ' . date('M j, Y', strtotime($goal['Target_Date'])) . ')';
+                                        } elseif ($dateDiff['status'] === 'today') {
+                                            echo '🔥 ' . $dateDiff['text'];
+                                        } else {
+                                            echo '⚠️ ' . $dateDiff['text'] . ' (Due: ' . date('M j, Y', strtotime($goal['Target_Date'])) . ')';
+                                        }
+                                        echo '</div>';
+                                    }
+                                    ?>
+                                <?php endif; ?>
+                                
                                 <?php if (!$goal['Completed']): ?>
                                 <div class="goal-actions">
                                     <a href="goal.php?edit=<?= $goal['Goal_ID'] ?>" class="btn btn-warning btn-small">✏️ Edit</a>
@@ -458,6 +551,15 @@ while ($row = $result->fetch_assoc()) {
                 document.getElementById('deleteForm').submit();
             }
         }
+
+        // Set minimum date to today for new goals
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.querySelector('input[name="Target_Date"]');
+            if (dateInput) {
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.setAttribute('min', today);
+            }
+        });
     </script>
 </div>
 
