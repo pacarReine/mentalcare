@@ -563,7 +563,7 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
 <div class="main">
     <div class="page-header">
-        <h1>💡 Tips Management</h1>
+        <h1>Tips Management</h1>
         <p>Create and manage motivational tips and wellness content to inspire and support users on their mental health journey.</p>
     </div>
 
@@ -573,7 +573,7 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
     <div class="form-container">
         <form method="POST">
-            <h3><?= $editMode ? '✏️ Edit Tip' : '➕ Add New Tip' ?></h3>
+            <h3><?= $editMode ? '✏️ Edit Tip' : 'Add New Tip' ?></h3>
             <input type="text" name="category" placeholder="Category (e.g., Motivation, Wellness, Self-Care, Mindfulness)" value="<?= $editMode ? htmlspecialchars($editTip['category']) : '' ?>" required>
             <textarea name="tip" placeholder="Enter your motivational tip here... Make it inspiring and actionable!" required><?= $editMode ? htmlspecialchars($editTip['tip']) : '' ?></textarea>
             <input type="text" name="keywords" placeholder="Keywords (comma-separated for better searchability)" value="<?= $editMode ? htmlspecialchars($editTip['keywords']) : '' ?>" required>
@@ -599,7 +599,7 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
     <div class="tips-container">
         <div class="tips-header">
-            <h3>📚 Tips Collection</h3>
+            <h3>Tips Collection</h3>
         </div>
         
         <?php if ($searchResults && $searchResults->num_rows > 0): ?>
