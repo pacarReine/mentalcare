@@ -34,7 +34,7 @@ $moodDates = array_reverse($moodDates);
 $journalResult = $conn->query("SELECT * FROM journal WHERE User_ID = $userId ORDER BY Journal_Date DESC LIMIT 1");
 $journal = $journalResult->fetch_assoc();
 
-// Fetch latest goal with target date
+// Fetch latest goal with target date and completion status
 $goalResult = $conn->query("SELECT * FROM goal_settings WHERE User_ID = $userId ORDER BY Goal_ID DESC LIMIT 1");
 $goal = $goalResult->fetch_assoc();
 
@@ -257,6 +257,39 @@ $motivation = $motivationResult->fetch_assoc();
             font-size: 1.1rem;
         }
 
+        /* Goal Completion Status Styling */
+        .goal-completed {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 3px solid #28a745;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .goal-completed::before {
+            content: "✅ ";
+            font-size: 1.2rem;
+        }
+
+        /* Goal card border for completed goals */
+        .card.completed-goal {
+            border-left: 4px solid #28a745;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+
+        .card.completed-goal h3 {
+            color: #155724;
+        }
+
+        .completion-date {
+            font-style: italic;
+            color: #28a745;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
@@ -315,7 +348,7 @@ $motivation = $motivationResult->fetch_assoc();
                 <p><strong>Feeling:</strong> <?= htmlspecialchars($mood['Mood_Feelings']) ?> (<?= htmlspecialchars($mood['Mood_Level']) ?>)</p>
                 <p><strong>Details:</strong> <?= htmlspecialchars($mood['Mood_Details']) ?></p>
                 <p><strong>Factors:</strong> <?= htmlspecialchars($mood['Mood_Factors']) ?></p>
-                <p><em><?= date('M d, Y g:i A', strtotime($mood['Created_at'])) ?></em></p>
+                <p><em><?= date('M d, Y g:i A', strtotime($mood['Created_At'])) ?></em></p>
             <?php else: ?>
                 <p class="no-data">No mood data yet. Start tracking your mood today!</p>
             <?php endif; ?>
@@ -333,32 +366,45 @@ $motivation = $motivationResult->fetch_assoc();
             <?php endif; ?>
         </div>
 
-        <div class="card">
+        <div class="card <?= ($goal && isset($goal['Completed']) && $goal['Completed'] == 1) ? 'completed-goal' : '' ?>">
             <h3>🎯 Recent Goal</h3>
             <?php if ($goal): ?>
                 <p><strong>Title:</strong> <?= htmlspecialchars($goal['Goal_Title']) ?></p>
                 <p><strong>Content:</strong> <?= htmlspecialchars($goal['Goal_Content']) ?></p>
                 
-                <?php if (isset($goal['Target_Date']) && $goal['Target_Date']): ?>
-                    <p><strong>Target Date:</strong> <?= date('M d, Y', strtotime($goal['Target_Date'])) ?></p>
-                    
-                    <?php if ($targetStatus && $daysRemaining !== null): ?>
-                        <div class="target-date-info target-<?= $targetStatus ?>">
-                            <?php if ($targetStatus === 'upcoming'): ?>
-                                <div class="days-counter">⏰ <?= $daysRemaining ?> days remaining</div>
-                                <div>Keep pushing towards your goal!</div>
-                            <?php elseif ($targetStatus === 'today'): ?>
-                                <div class="days-counter">🎯 Goal deadline is TODAY!</div>
-                                <div>Time to achieve your goal!</div>
-                            <?php elseif ($targetStatus === 'overdue'): ?>
-                                <div class="days-counter">⚠️ <?= $daysRemaining ?> days overdue</div>
-                                <div>Consider revising your timeline or celebrating partial progress!</div>
-                            <?php endif; ?>
-                        </div>
+                <!-- Goal Completion Status -->
+                <?php if (isset($goal['Completed']) && $goal['Completed'] == 1): ?>
+                    <div class="goal-completed">
+                        Goal Completed! Well done! 🎉
+                    </div>
+                    <?php if (isset($goal['Completion_Date']) && $goal['Completion_Date']): ?>
+                        <p class="completion-date">Completed on: <?= date('M d, Y g:i A', strtotime($goal['Completion_Date'])) ?></p>
                     <?php endif; ?>
                 <?php else: ?>
-                    <p><em>No target date set for this goal</em></p>
+                    <!-- Show target date info only for incomplete goals -->
+                    <?php if (isset($goal['Target_Date']) && $goal['Target_Date']): ?>
+                        <p><strong>Target Date:</strong> <?= date('M d, Y', strtotime($goal['Target_Date'])) ?></p>
+                        
+                        <?php if ($targetStatus && $daysRemaining !== null): ?>
+                            <div class="target-date-info target-<?= $targetStatus ?>">
+                                <?php if ($targetStatus === 'upcoming'): ?>
+                                    <div class="days-counter">⏰ <?= $daysRemaining ?> days remaining</div>
+                                    <div>Keep pushing towards your goal!</div>
+                                <?php elseif ($targetStatus === 'today'): ?>
+                                    <div class="days-counter">🎯 Goal deadline is TODAY!</div>
+                                    <div>Time to achieve your goal!</div>
+                                <?php elseif ($targetStatus === 'overdue'): ?>
+                                    <div class="days-counter">⚠️ <?= $daysRemaining ?> days overdue</div>
+                                    <div>Consider revising your timeline or celebrating partial progress!</div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <p><em>No target date set for this goal</em></p>
+                    <?php endif; ?>
                 <?php endif; ?>
+                
+                <p><em>Created: <?= date('M d, Y', strtotime($goal['Created_At'])) ?></em></p>
             <?php else: ?>
                 <p class="no-data">No goals added yet. Set your first goal to get started!</p>
             <?php endif; ?>
