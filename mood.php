@@ -54,6 +54,9 @@ if (isset($_POST['update'])) {
     if ($stmt->execute()) {
         $message = "✅ Mood updated successfully!";
         $edit_data = null; // Reset edit_data to close the edit form
+        // Redirect to clear the edit parameter from URL
+        header('Location: mood.php?updated=1');
+        exit();
     } else {
         $message = "❌ Error: " . $stmt->error;
     }
@@ -99,6 +102,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['update'])) {
     }
 
     $stmt->close();
+}
+
+// Check for update success message
+if (isset($_GET['updated'])) {
+    $message = "✅ Mood updated successfully!";
 }
 
 // Get user's mood history
@@ -581,7 +589,12 @@ if ($custom_factors_result->num_rows > 0) {
             <h1>Mood Tracker</h1>
         </div>
 
+        <?php if ($message): ?>
+            <div class="success-message"><?= $message ?></div>
+        <?php endif; ?>
+
         <?php if ($edit_data): ?>
+        <!-- EDIT FORM - Only shown when editing -->
         <div class="card edit-form">
             <h3>Edit Mood Entry</h3>
             <form method="post">
@@ -647,11 +660,10 @@ if ($custom_factors_result->num_rows > 0) {
                 </div>
             </form>
         </div>
-        <?php endif; ?>
-
+        <?php else: ?>
+        <!-- NEW MOOD FORM - Only shown when NOT editing -->
         <div class="card">
             <h2>Log Your Mood</h2>
-            <?php if ($message) echo "<div class='success-message'>$message</div>"; ?>
             <form method="post">
                 <label for="mood">Mood Feeling:</label>
                 <select name="mood" id="mood" onchange="checkCustomFeeling()" required>
@@ -709,6 +721,7 @@ if ($custom_factors_result->num_rows > 0) {
                 <button class="btn" type="submit">Save Mood</button>
             </form>
         </div>
+        <?php endif; ?>
 
         <div class="card">
             <h3>Your Mood History</h3>
