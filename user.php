@@ -370,7 +370,7 @@ $motivation = $motivationResult->fetch_assoc();
             <h3>🎯 Recent Goal</h3>
             <?php if ($goal): ?>
                 <p><strong>Title:</strong> <?= htmlspecialchars($goal['Goal_Title']) ?></p>
-                <p><strong>Content:</strong> <?= htmlspecialchars($goal['Goal_Content']) ?></p>
+                <p><strong>Contents:</strong> <?= htmlspecialchars($goal['Goal_Content']) ?></p>
                 
                 <!-- Goal Completion Status -->
                 <?php if (isset($goal['Completed']) && $goal['Completed'] == 1): ?>
