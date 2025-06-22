@@ -304,7 +304,7 @@ $motivation = $motivationResult->fetch_assoc();
 
 <div class="main-content">
     <div class="welcome-card card">
-        <h1>Welcome back, <?php echo htmlspecialchars($username); ?>!</h1>
+        <h1>Welcome <?php echo htmlspecialchars($username); ?>!</h1>
         <p>Here's your mental health dashboard overview</p>
     </div>
 
