@@ -252,19 +252,26 @@ $rules = $conn->query($rulesQuery);
             font-family: 'Inter', sans-serif;
         }
 
+        /* STANDARDIZED BUTTON STYLES */
         .btn {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 20px;
             border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 14px;
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
+            text-decoration: none;
+            min-width: 140px;
+            height: 44px;
+            box-sizing: border-box;
+            white-space: nowrap;
         }
 
         .btn:hover {
@@ -282,7 +289,62 @@ $rules = $conn->query($rulesQuery);
 
         .btn-small {
             padding: 8px 16px;
-            font-size: 14px;
+            font-size: 13px;
+            min-width: 120px;
+            height: 36px;
+        }
+
+        .btn-large {
+            padding: 14px 24px;
+            font-size: 16px;
+            min-width: 160px;
+            height: 50px;
+        }
+
+        /* SEARCH BAR STYLES */
+        .search-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input-container {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .search-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
 
         .table-container {
@@ -390,6 +452,7 @@ $rules = $conn->query($rulesQuery);
             padding: 16px;
         }
 
+        /* IMPROVED EDIT FORM STYLING */
         .edit-form {
             display: flex;
             flex-direction: column;
@@ -415,12 +478,34 @@ $rules = $conn->query($rulesQuery);
             resize: vertical;
         }
 
-        .edit-form button {
-            align-self: flex-start;
+        /* ALIGNED ACTION BUTTONS */
+        .action-buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .action-buttons-container .btn {
+            width: 100%;
+            min-width: auto;
         }
 
         .delete-form {
-            margin-top: 10px;
+            width: 100%;
+        }
+
+        /* SIDE BY SIDE BUTTONS */
+        .button-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: stretch;
+        }
+
+        .button-row .btn {
+            flex: 1;
+            min-width: auto;
         }
 
         /* Enhanced responsive design */
@@ -441,6 +526,19 @@ $rules = $conn->query($rulesQuery);
             }
             .form-group {
                 min-width: 100%;
+            }
+            
+            .search-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-input-container {
+                min-width: 100%;
+            }
+            
+            .search-buttons {
+                justify-content: center;
             }
         }
 
@@ -478,11 +576,18 @@ $rules = $conn->query($rulesQuery);
             }
             .page-header,
             .form-container,
-            .table-container {
+            .table-container,
+            .search-container {
                 padding: 20px;
             }
             .page-header h1 {
                 font-size: 24px;
+            }
+            
+            .btn {
+                min-width: 100px;
+                font-size: 13px;
+                padding: 10px 16px;
             }
         }
 
@@ -570,15 +675,18 @@ $rules = $conn->query($rulesQuery);
         </div>
     <?php endif; ?>
 
-    <!-- Search Bar -->
-    <form method="GET" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <input type="text" name="search" placeholder="🔍 Search by keyword..." value="<?= htmlspecialchars($searchTerm) ?>"
-               style="padding: 10px 16px; font-size: 16px; border-radius: 12px; border: 2px solid #e5e7eb; flex: 1; min-width: 250px;">
-
-        <button type="submit" class="btn btn-small" style="padding: 10px 20px;">🔍 Search</button>
-
-        <a href="admin_chatbot.php" class="btn btn-danger btn-small" style="text-decoration: none; padding: 10px 20px;">❌ Clear</a>
-    </form>
+    <!-- Enhanced Search Bar -->
+    <div class="search-container">
+        <form method="GET" class="search-form">
+            <div class="search-input-container">
+                <input type="text" name="search" class="search-input" placeholder="🔍 Search by keyword..." value="<?= htmlspecialchars($searchTerm) ?>">
+            </div>
+            <div class="search-buttons">
+                <button type="submit" class="btn">🔍 Search</button>
+                <a href="admin_chatbot.php" class="btn btn-danger">❌ Clear</a>
+            </div>
+        </form>
+    </div>
 
     <!-- Add Rule -->
     <div class="form-container">
@@ -594,7 +702,7 @@ $rules = $conn->query($rulesQuery);
                     <textarea id="Bot_Response" name="Bot_Response" placeholder="Enter the response the chatbot should give..." required></textarea>
                 </div>
             </div>
-            <button type="submit" name="add" class="btn">➕ Add Rule</button>
+            <button type="submit" name="add" class="btn btn-large">➕ Add Rule</button>
         </form>
     </div>
 
@@ -630,19 +738,20 @@ $rules = $conn->query($rulesQuery);
                                 </div>
                             </td>
                             <td class="actions-cell">
-                                <!-- Edit Form -->
-                                <form method="POST" class="edit-form">
-                                    <input type="hidden" name="id" value="<?= $row['Rule_ID'] ?>">
-                                    <input type="text" name="User_Input" value="<?= htmlspecialchars($row['User_Input']) ?>" placeholder="Enter keyword..." required>
-                                    <textarea name="Bot_Response" placeholder="Enter response..." required><?= htmlspecialchars($row['Bot_Response']) ?></textarea>
-                                    <button type="submit" name="edit" class="btn btn-small">✏️ Update Rule</button>
-                                </form>
-
-                                <!-- Delete Form -->
-                                <form method="GET" class="delete-form" onsubmit="return confirm('⚠️ Are you sure you want to delete this rule?\n\nKeyword: <?= htmlspecialchars($row['User_Input']) ?>');">
-                                    <input type="hidden" name="delete" value="<?= $row['Rule_ID'] ?>">
-                                    <button type="submit" class="btn btn-danger btn-small">🗑️ Delete Rule</button>
-                                </form>
+                                <div class="action-buttons-container">
+                                    <!-- Edit Form -->
+                                    <form method="POST" class="edit-form">
+                                        <input type="hidden" name="id" value="<?= $row['Rule_ID'] ?>">
+                                        <input type="text" name="User_Input" value="<?= htmlspecialchars($row['User_Input']) ?>" placeholder="Enter keyword..." required>
+                                        <textarea name="Bot_Response" placeholder="Enter response..." required><?= htmlspecialchars($row['Bot_Response']) ?></textarea>
+                                        
+                                        <!-- Side by side buttons -->
+                                        <div class="button-row">
+                                            <button type="submit" name="edit" class="btn btn-small">✏️ Update</button>
+                                            <button type="button" class="btn btn-danger btn-small" onclick="if(confirm('⚠️ Are you sure you want to delete this rule?\n\nKeyword: <?= htmlspecialchars($row['User_Input']) ?>')) { window.location.href='?delete=<?= $row['Rule_ID'] ?>'; }">🗑️ Delete</button>
+                                        </div>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <?php endwhile; ?>
