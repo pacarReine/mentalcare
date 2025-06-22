@@ -8,9 +8,6 @@ if (!isset($_SESSION['User_Username']) || $_SESSION['User_Role'] != 'admin') {
     exit();
 }
 
-// Get current admin's user ID for comparison
-$current_admin_id = $_SESSION['User_ID'] ?? null; // Assuming User_ID is stored in session
-
 // Search logic
 $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
 if (!empty($search)) {
@@ -339,30 +336,6 @@ $result = mysqli_query($conn, $sql);
             box-shadow: 0 4px 15px rgba(238, 90, 36, 0.4);
         }
 
-        .delete-btn:disabled {
-            background: #d1d5db;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .delete-btn:disabled:hover {
-            transform: none;
-            box-shadow: none;
-        }
-
-        .self-indicator {
-            padding: 4px 8px;
-            background: rgba(34, 197, 94, 0.15);
-            color: #16a34a;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-left: 8px;
-        }
-
         .no-data {
             text-align: center;
             padding: 60px 20px;
@@ -442,7 +415,6 @@ $result = mysqli_query($conn, $sql);
         <a href="admin_exercise.php"><span>📄</span> Question Management</a>
         <a href="admin_dass.php"><span>📚</span> DASS History</a>
         <a href="admin_chatbot.php"><span>🤖</span> Chatbot Management</a>
-        <a href="tips_management.php"><span>💡</span> Tips Management</a>
     </nav>
     <button class="logout-btn" onclick="window.location.href='logout.php'">🚪 Logout</button>
 </div>
@@ -489,9 +461,7 @@ $result = mysqli_query($conn, $sql);
                 <tbody>
                     <?php 
                     $index = 1;
-                    while ($row = mysqli_fetch_assoc($result)) { 
-                        $is_current_user = ($row['User_ID'] == $current_admin_id);
-                    ?>
+                    while ($row = mysqli_fetch_assoc($result)) { ?>
                     <tr>
                         <td><?= $index++ ?></td>
                         <td>
@@ -500,12 +470,7 @@ $result = mysqli_query($conn, $sql);
                                     <?= strtoupper(substr($row['User_Username'], 0, 1)) ?>
                                 </div>
                                 <div class="user-details">
-                                    <h4>
-                                        <?= htmlspecialchars($row['User_Username']) ?>
-                                        <?php if ($is_current_user) { ?>
-                                            <span class="self-indicator">You</span>
-                                        <?php } ?>
-                                    </h4>
+                                    <h4><?= htmlspecialchars($row['User_Username']) ?></h4>
                                     <p>ID: <?= $row['User_ID'] ?></p>
                                 </div>
                             </div>
@@ -518,15 +483,9 @@ $result = mysqli_query($conn, $sql);
                         </td>
                         <td><?= date('M d, Y', strtotime($row['Created_At'])) ?></td>
                         <td class="action-buttons">
-                            <?php if ($is_current_user) { ?>
-                                <button class="delete-btn" disabled title="You cannot delete your own account">
-                                    🔒 Cannot Delete Self
-                                </button>
-                            <?php } else { ?>
-                                <button class="delete-btn" onclick="if(confirm('Are you sure you want to delete this user? This will delete all associated data.')) window.location.href='delete_user.php?id=<?= $row['User_ID'] ?>'">
-                                    🗑️ Delete
-                                </button>
-                            <?php } ?>
+                            <button class="delete-btn" onclick="if(confirm('Are you sure you want to delete this user? This will delete all associated data.')) window.location.href='delete_user.php?id=<?= $row['User_ID'] ?>'">
+                                🗑️ Delete
+                            </button>
                         </td>
                     </tr>
                     <?php } ?>
