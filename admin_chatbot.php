@@ -682,8 +682,8 @@ $rules = $conn->query($rulesQuery);
                 <input type="text" name="search" class="search-input" placeholder="🔍 Search by keyword..." value="<?= htmlspecialchars($searchTerm) ?>">
             </div>
             <div class="search-buttons">
-                <button type="submit" class="btn">🔍 Search</button>
-                <a href="admin_chatbot.php" class="btn btn-danger">❌ Clear</a>
+                <button type="submit" class="btn">Search</button>
+                <a href="admin_chatbot.php" class="btn btn-danger">Clear</a>
             </div>
         </form>
     </div>
