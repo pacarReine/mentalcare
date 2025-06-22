@@ -483,9 +483,11 @@ $result = mysqli_query($conn, $sql);
                         </td>
                         <td><?= date('M d, Y', strtotime($row['Created_At'])) ?></td>
                         <td class="action-buttons">
-                            <button class="delete-btn" onclick="if(confirm('Are you sure you want to delete this user? This will delete all associated data.')) window.location.href='delete_user.php?id=<?= $row['User_ID'] ?>'">
-                                🗑️ Delete
-                            </button>
+                            <?php if (strtolower($row['User_Role']) !== 'admin') { ?>
+                                <button class="delete-btn" onclick="if(confirm('Are you sure you want to delete this user? This will delete all associated data.')) window.location.href='delete_user.php?id=<?= $row['User_ID'] ?>'">
+                                    🗑️ Delete
+                                </button>
+                            <?php } ?>
                         </td>
                     </tr>
                     <?php } ?>
